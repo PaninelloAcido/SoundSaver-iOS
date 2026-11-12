@@ -1,32 +1,30 @@
 workflows:
   soundsaver-ios:
-    name: SoundSaver iOS - First Build
+    name: SoundSaver - Unsigned compilation
     max_build_duration: 30
     instance_type: mac_mini_m2
-
     environment:
       xcode: latest
-
     scripts:
-      - name: Install XcodeGen
+      - name: Install XcodeGen and generate project
         script: |
-          brew install xcodegen
-
-      - name: Generate Xcode project
-        script: |
+          set -euo pipefail
+          if ! command -v xcodegen >/dev/null; then brew install xcodegen; fi
+          mkdir -p build/logs
+          xcodebuild -version | tee build/logs/xcode-version.log
+          xcodegen --version | tee build/logs/xcodegen-version.log
           xcodegen generate --spec project.yml
-
-      - name: Build iOS app
+          xcodebuild -list -project SoundSaver.xcodeproj
+      - name: Compile simulator app and embedded extension without signing
         script: |
-          xcodebuild \
-            -project SoundSaver.xcodeproj \
-            -scheme SoundSaver \
-            -configuration Debug \
-            -sdk iphonesimulator \
+          set -euo pipefail
+          xcodebuild build -project SoundSaver.xcodeproj -scheme SoundSaver \
+            -configuration Debug -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO \
-            build
-
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            2>&1 | tee build/logs/xcodebuild.log
+          test -d build/DerivedData/Build/Products/Debug-iphonesimulator/SoundSaver.app/PlugIns/SoundSaverShareExtension.appex
     artifacts:
-      - /tmp/xcodebuild_logs/*.log
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - build/logs/*.log
+      - build/DerivedData/Build/Products/Debug-iphonesimulator/*.app

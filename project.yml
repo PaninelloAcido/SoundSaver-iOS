@@ -1,0 +1,51 @@
+name: SoundSaver
+options:
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    APP_GROUP_IDENTIFIER: group.com.paninelloacido.soundsaver
+targets:
+  SoundSaver:
+    type: application
+    platform: iOS
+    sources: [SoundSaver, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.paninelloacido.soundsaver
+        CODE_SIGN_ENTITLEMENTS: Shared/AppGroup.entitlements
+    info:
+      path: SoundSaver/Info.plist
+      properties:
+        CFBundleDisplayName: SoundSaver
+        AppGroupIdentifier: $(APP_GROUP_IDENTIFIER)
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+    dependencies:
+      - target: SoundSaverShareExtension
+        embed: true
+  SoundSaverShareExtension:
+    type: app-extension
+    platform: iOS
+    sources: [SoundSaverShareExtension, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.paninelloacido.soundsaver.share
+        INFOPLIST_FILE: SoundSaverShareExtension/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Shared/AppGroup.entitlements
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+schemes:
+  SoundSaver:
+    build:
+      targets:
+        SoundSaver: all
+    run:
+      config: Debug
+    archive:
+      config: Release
